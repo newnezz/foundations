@@ -1,40 +1,44 @@
-import React, { useState,  useEffect } from "react";
-import styles from './App.module.css';
-import { Auth } from '@supabase/auth-ui-react'
-import { ThemeSupa } from '@supabase/auth-ui-shared'
-import { createClient } from '@supabase/supabase-js'
+import React, { useState, useEffect } from "react";
+import styles from "./App.module.css";
+import { Auth } from "@supabase/auth-ui-react";
+import { ThemeSupa } from "@supabase/auth-ui-shared";
+import { createClient } from "@supabase/supabase-js";
 
 const App = () => {
   const [text, setText] = useState("");
   const [session, setSession] = useState();
-  const supabase = createClient('https://cymccahfqxuoirpkxlkh.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5bWNjYWhmcXh1b2lycGt4bGtoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzODE4MDMsImV4cCI6MjA0OTk1NzgwM30.RG3mYI5xOVrktwft3-76Gwh88ak0iY-SMw8JMq1UH90')
+  const supabase = createClient(
+    "https://cymccahfqxuoirpkxlkh.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN5bWNjYWhmcXh1b2lycGt4bGtoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQzODE4MDMsImV4cCI6MjA0OTk1NzgwM30.RG3mYI5xOVrktwft3-76Gwh88ak0iY-SMw8JMq1UH90",
+  );
 
   useEffect(() => {
-      supabase.auth.getSession().then(({ data: { session } }) => {
-        setSession(session)
-      })
-      const {
-        data: { subscription },
-      } = supabase.auth.onAuthStateChange((_event, session) => {
-        setSession(session)
-      })
-      return () => subscription.unsubscribe()
-    }, [])
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
 
-  // pull in data to display, below is just fake data for now
-  // cRud = > Read
   const [fakeData, setFakeData] = useState([
     {
       id: 1,
-      title: "Go to the store",
+      title: "Sample 1",
+      completed: true,
     },
     {
       id: 2,
-      title: "Develop an app",
+      title: "Sample 2",
+      completed: false,
     },
     {
       id: 3,
-      title: "Create a windsword",
+      title: "Sample 3",
+      completed: true,
     },
   ]);
 
@@ -50,42 +54,76 @@ const App = () => {
 
   const handleAdd = () => {
     if (inputGood() == "good") {
-      setFakeData([...fakeData, { id: fakeData.length + 1, title: text }]); // Crud > create
+      setFakeData([
+        ...fakeData,
+        { id: fakeData.length + 1, title: text, completed: false },
+      ]);
       setText("");
     } else {
       alert(inputGood());
     }
-  };
-  const handleUpdate = () => {
-    alert("Saves to database, not yet implemented"); // crUd > update
   };
 
   const handleDelete = (id) => {
     setFakeData(fakeData.filter((item) => item.id !== id));
   };
 
+  const onCompleted = (item) => {
+    setFakeData(
+      fakeData.map((dataItem) =>
+        dataItem.id === item.id
+          ? { ...dataItem, completed: !dataItem.completed }
+          : dataItem,
+      ),
+    );
+  };
+
   return (
-    <div>
+    <div className={styles.container}>
       {session ? (
-        <div className={styles.container}>
+        <div>
           Simple To Do List
           <ul style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            {fakeData.map((item, key) => {
+            {fakeData.map((item) => {
               return (
-                <div style={{ display: "flex", gap: "10px" }}>
-                  <li key={item.id}>{item.title}</li>
-                  <button onClick={() => handleDelete(item.id)}>Delete</button>
+                <div key={item.id} style={{ display: "flex", gap: "10px" }}>
+                  <li
+                    onClick={() => onCompleted(item)}
+                    style={{
+                      textDecoration: item.completed ? "line-through" : "none",
+                      cursor: "pointer", // Indicates the item is clickable
+                    }}
+                  >
+                    {item.title}
+                  </li>
+                  <i
+                    className={`fa ${item.completed ? "fa-check-circle" : "fa-circle"}`}
+                    onClick={() => onCompleted(item)}
+                    style={{
+                      cursor: "pointer", // Add pointer cursor for the icon
+                      color: item.completed ? "green" : "gray",
+                    }}
+                  />
+                  <i
+                    className="fa fa-trash"
+                    onClick={() => handleDelete(item.id)}
+                    style={{ cursor: "pointer", color: "red" }}
+                  />
                 </div>
               );
             })}
           </ul>
-          <input
-            type="text"
-            onChange={(e) => setText(e.target.value)}
-            value={text}
-          ></input>
-          <button onClick={handleAdd}>Add New</button>
-          <button onClick={handleUpdate}>Save</button>
+          <div className={styles.inputContainer}>
+            <input
+              className={styles.input}
+              type="text"
+              onChange={(e) => setText(e.target.value)}
+              value={text}
+            />
+            <div className={styles.button}>
+              <button onClick={handleAdd}>Add New</button>
+            </div>
+          </div>
         </div>
       ) : (
         <Auth supabaseClient={supabase} appearance={{ theme: ThemeSupa }} />

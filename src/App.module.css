@@ -1,3 +1,26 @@
 .container {
-    
+  display: flex;
+  height: 90vh;
+  justify-content: center;
+  align-items: center;
+
+  font-size: 32px;
+}
+
+.inputContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.input {
+  width: 150px;
+  height: 25px;
+  border-radius: 6px;
+}
+
+.negativeButton {
+  background-color: rgb(216, 100, 100);
+  width: 35px;
 }
