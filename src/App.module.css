@@ -14,12 +14,6 @@
   align-items: center;
 }
 
-.input {
-  width: 150px;
-  height: 25px;
-  border-radius: 6px;
-}
-
 .negativeButton {
   background-color: rgb(216, 100, 100);
   width: 35px;
