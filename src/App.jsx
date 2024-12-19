@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./App.module.css";
 import supabase from "../Utils/supabase";
 
@@ -8,16 +8,18 @@ const App = () => {
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
   const [todolist, setTodoList] = useState([]);
-  let user = undefined;
+  const [user, setUser] = useState();
 
   useEffect(() => {});
 
   useEffect(() => {
     checkSession();
 
-
     const fetchTodos = async () => {
-      const { data, error } = await supabase.from("todos").select();
+      const { data, error } = await supabase
+        .from("todos")
+        .select()
+        .eq("user_id", user);
 
       if (error) {
         console.error(error);
@@ -27,11 +29,14 @@ const App = () => {
 
       if (data) {
         setTodoList(data);
+        console.log("fetched data", data);
       }
     };
 
-    loggedIn && fetchTodos();
-  }, [loggedIn]);
+    if (loggedIn && user) {
+      fetchTodos();
+    }
+  }, [loggedIn, user]);
 
   const checkSession = async () => {
     const { data: session, error } = await supabase.auth.getSession();
@@ -43,13 +48,14 @@ const App = () => {
     if (session.session) {
       // Set session to true or store the user's info in state
       setLoggedIn(true);
-      user = session.user; // Optional: Save user details
+      setUser(session.session.user); // Optional: Save user details
+      console.log("user", user);
     } else {
       setLoggedIn(false);
     }
   };
 
-  const handleAdd = useCallback(async () => {
+  const handleAdd = async () => {
     const { data, error } = await supabase
       .from("todos")
       .insert([
@@ -67,33 +73,32 @@ const App = () => {
     }
 
     if (data) {
-      setTodoList([...todolist, { id: todolist.length + 1, title: text }]); // Crud > create
+      console.log("handle add", data);
+      setTodoList([...todolist, { id: data[0].id, title: text }]); // Crud > create
       setText("");
     }
-  });
-
-  const handleUpdate = async () => {
-    // const { data, error } = await supabase
   };
 
   const handleDelete = async (id) => {
+    console.log("deleted id", id);
     const { error } = await supabase.from("todos").delete().eq("id", id);
 
     if (!error) {
       setTodoList(todolist.filter((item) => item.id !== id));
+      console.log("success deletion!");
     } else {
       console.error(error);
     }
   };
 
   const onCompleted = (item) => {
-    setTodoList(
-      todolist.map((dataItem) =>
-        dataItem.id === item.id
-          ? { ...dataItem, completed: !dataItem.completed } // Toggle completed status
-          : dataItem,
-      ),
-    );
+    // setTodoList(
+    //   todolist.map((dataItem) =>
+    //     dataItem.id === item.id
+    //       ? { ...dataItem, completed: !dataItem.completed } // Toggle completed status
+    //       : dataItem,
+    //   ),
+    // );
   };
 
   const handleSignUp = async () => {
@@ -104,12 +109,13 @@ const App = () => {
 
     if (error) {
       alert(error);
-      setSession(false);
+      setLoggedIn(false);
       return;
     }
     if (data) {
-      setSession(true);
-      user = data.session.user;
+      console.log(data.user.id);
+      setLoggedIn(true);
+      setUser(data.user.id);
     }
   };
 
@@ -126,7 +132,7 @@ const App = () => {
     }
     if (data) {
       setLoggedIn(true);
-      user = data.session.user;
+      setUser(data.session.user);
     }
   };
 
@@ -141,6 +147,7 @@ const App = () => {
       {loggedIn ? (
         <div>
           Simple To Do List
+          {/* <p style={{fontSize: '14px'}}>User: {user.email}</p> */}
           <ul style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
             {todolist.map((item, key) => {
               return (
