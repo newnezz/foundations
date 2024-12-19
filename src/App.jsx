@@ -15,7 +15,6 @@ const App = () => {
   useEffect(() => {
     checkSession();
 
-    console.log("user", user);
 
     const fetchTodos = async () => {
       const { data, error } = await supabase.from("todos").select();
@@ -28,7 +27,6 @@ const App = () => {
 
       if (data) {
         setTodoList(data);
-        console.log("fetched list", data);
       }
     };
 
@@ -43,18 +41,15 @@ const App = () => {
     }
 
     if (session.session) {
-      console.log("Session exists:", session);
       // Set session to true or store the user's info in state
       setLoggedIn(true);
       user = session.user; // Optional: Save user details
     } else {
-      console.log("No active session");
       setLoggedIn(false);
     }
   };
 
   const handleAdd = useCallback(async () => {
-    console.log("handleadd user", user);
     const { data, error } = await supabase
       .from("todos")
       .insert([
@@ -72,7 +67,6 @@ const App = () => {
     }
 
     if (data) {
-      console.log(data);
       setTodoList([...todolist, { id: todolist.length + 1, title: text }]); // Crud > create
       setText("");
     }
@@ -116,7 +110,6 @@ const App = () => {
     if (data) {
       setSession(true);
       user = data.session.user;
-      console.log(data);
     }
   };
 
@@ -134,7 +127,6 @@ const App = () => {
     if (data) {
       setLoggedIn(true);
       user = data.session.user;
-      console.log("handle login data", data);
     }
   };
 
